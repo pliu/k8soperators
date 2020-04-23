@@ -1,12 +1,24 @@
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: k8soperators
 rules:
   - apiGroups:
+      - k8soperators.pliu.github.com
+    resources:
+      - '*'
+    verbs:
+      - '*'
+  - apiGroups:
       - '*'
     resources:
-      - pods
+      - namespaces
+    verbs:
+      - '*'
+  - apiGroups:
+      - '*'
+    resources:
+      - configmaps
     verbs:
       - get
       - list
@@ -14,6 +26,6 @@ rules:
   - apiGroups:
       - '*'
     resources:
-      - configmaps
+      - '*'
     verbs:
       - '*'
