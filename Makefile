@@ -32,22 +32,24 @@ build: generate_code
 .PHONY: apply
 apply: build template_deployment generate_crds
 	kind load docker-image $(APP_IMAGE) --name $(CLUSTER_NAME)
-	-kubectl delete -f ./deploy/deployment.yaml
-	kubectl apply --recursive -f ./deploy
+	-kubectl delete -f deploy/deployment.yaml
+	kubectl apply --recursive -f deploy/
 
-.PHONY: integration_test
-integration_test: build template_deployment generate_crds
+.PHONY: integration_tests
+integration_tests: build template_deployment generate_crds
 	-make kind_create
 	kind load docker-image $(APP_IMAGE) --name $(CLUSTER_NAME)
 	-kubectl create namespace $(TESTING_NAMESPACE)
-	kubectl apply --recursive -f ./deploy -n $(TESTING_NAMESPACE)
-	kubectl delete -- recursive -f ./deploy -n $(TESTING_NAMESPACE)
+	@kubectl apply --recursive -f deploy/ -n $(TESTING_NAMESPACE)
+	go test ./integration-tests/...
+	kubectl delete --recursive -f deploy/ -n $(TESTING_NAMESPACE)
 	kubectl delete namespace $(TESTING_NAMESPACE)
 
-.PHONY: unit_test
-unit_test: generate_code
-	go test ./...
+.PHONY: unit_tests
+unit_tests: generate_code
+	go test ./pkg/...
 
 .PHONY: run
 run: generate_code
-	OPERATOR_NAME=$(APP_NAME) operator-sdk run --local
+	-kubectl apply --recursive -f deploy/crds
+	OPERATOR_NAME=$(APP_NAME) operator-sdk run --local --namespace=''

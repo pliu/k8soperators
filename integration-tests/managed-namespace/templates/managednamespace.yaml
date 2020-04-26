@@ -1,4 +1,0 @@
-apiVersion: k8soperators.pliu.github.com/v1alpha1
-kind: ManagedNamespace
-metadata:
-  name: k8soperators
