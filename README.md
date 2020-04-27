@@ -85,10 +85,12 @@ the kubeconfig found at ~/.kube/config.
 
 When initially developing a controller, running the operator locally allows
 for rapid iteration (this runs the current code and displays the log
-messages). As the functionality sets, it should be codified in unit and
-integration tests that can be run on subsequent code changes to ensure that
-the desired behavior was not altered. Finally, the operator can be applied
-to the cluster as it might be in a live setting.
+messages). While running locally, any endpoints exposed by the operator
+(e.g. the metrics endpoint) are accessible on localhost. As the
+functionality sets, it should be codified in unit and integration tests that
+can be run on subsequent code changes to ensure that the desired behavior
+was not altered. Finally, the operator can be applied to the cluster as it
+might be in a live setting.
 
 ## Commands
 ```

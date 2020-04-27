@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8soperators/pkg/constants"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
@@ -23,7 +25,6 @@ type void struct{}
 var (
 	log = logf.Log.WithName("controller_managednamespace")
 	voidValue void
-	managedNamespaceLabelKey = "k8soperators.pliu.github.com"
 )
 
 // Add creates a new ManagedNamespace Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -106,7 +107,11 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 	}
 
 	namespaces := &v1.NamespaceList{}
-	err = r.client.List(context.TODO(), namespaces)
+	labelSelector := labels.SelectorFromSet(map[string]string{
+		constants.K8sOperatorsLabelKey: constants.ManagedNamespaceLabelValue,
+	})
+	listOps := &client.ListOptions{LabelSelector: labelSelector}
+	err = r.client.List(context.TODO(), namespaces, listOps)
 	if err != nil {
 		reqLogger.Error(err, "Failed to get Namepsaces - requeuing")
 		return reconcile.Result{}, err
@@ -114,10 +119,6 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 
 	hasFailures := false
 	for _, namespace := range namespaces.Items {
-		if _, exists := namespace.Labels[managedNamespaceLabelKey]; !exists {
-			reqLogger.Info(fmt.Sprintf("Namespace %s is not managed by this controller", namespace.Name))
-			continue
-		}
 		if _, exists := managedNamespaceNames[namespace.Name]; exists {
 			reqLogger.Info(fmt.Sprintf("Namespace %s is still being managed", namespace.Name))
 			continue

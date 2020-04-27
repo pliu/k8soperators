@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	server2 "k8soperators/pkg/server"
 	"os"
 	"runtime"
 	"strings"
@@ -127,6 +128,9 @@ func main() {
 
 	// Add the Metrics Service
 	addMetrics(ctx, cfg)
+
+	// Start K8sOperators server
+	go server2.StartServer(mgr, "127.0.0.1:8080")
 
 	log.Info("Starting the Cmd.")
 
