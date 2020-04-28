@@ -5,11 +5,11 @@ import (
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
 	"k8soperators/pkg/constants"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,7 +41,10 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("managednamespace-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New("managednamespace-controller", mgr, controller.Options{
+		Reconciler: r,
+		MaxConcurrentReconciles: 1,
+	})
 	if err != nil {
 		return err
 	}
@@ -135,5 +138,6 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 		return reconcile.Result{Requeue: true}, nil
 	}
 
+	time.Sleep(time.Second * 15)
 	return reconcile.Result{}, nil
 }

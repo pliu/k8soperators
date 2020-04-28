@@ -2,8 +2,10 @@ package server
 
 import (
 	"fmt"
+	"github.com/gorilla/handlers"
 	"k8soperators/pkg/server/controllers"
 	"net/http"
+	"os"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -16,16 +18,20 @@ var (
 func StartServer(mgr manager.Manager, address string) {
 	controllers.RegisterClient(mgr.GetClient())
 
-	registerControllers()
+	routes := registerControllers()
+
+	rootMux.Handle("/", handlers.LoggingHandler(os.Stdout, routes))
 
 	go http.ListenAndServe(address, rootMux)
 
 	log.Info(fmt.Sprintf("K8sOperators server listening at %s", address))
 }
 
-func registerControllers() {
+func registerControllers() *http.ServeMux {
+	routes := http.NewServeMux()
 	for _, controller := range controllers.Controllers {
 		log.Info(fmt.Sprintf("%s registered at %s", controller.Name, controller.Path))
-		rootMux.Handle(fmt.Sprintf("%s/", controller.Path), http.StripPrefix(controller.Path, controller.Mux))
+		routes.Handle(fmt.Sprintf("%s/", controller.Path), http.StripPrefix(controller.Path, controller.Mux))
 	}
+	return routes
 }

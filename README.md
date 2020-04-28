@@ -72,6 +72,9 @@ an ORM, maps between Go objects and Kubernetes objects and vice-versa.
 Similar to controllers, custom resources must be registered with the
 manager.
 
+#### Server
+
+
 ## Controllers in this project
 [ManagedNamespace](docs/ManagedNamespace.md)
 

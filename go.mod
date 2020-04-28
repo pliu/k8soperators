@@ -3,6 +3,8 @@ module k8soperators
 go 1.13
 
 require (
+	github.com/golang/gddo v0.0.0-20200324184333-3c2cc9a6329d
+	github.com/gorilla/handlers v1.4.2
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.5.1

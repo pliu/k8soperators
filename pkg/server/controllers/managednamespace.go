@@ -2,12 +2,13 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	v1 "k8s.io/api/core/v1"
+	v12 "k8s.io/api/rbac/v1"
 	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
 	"k8soperators/pkg/constants"
+	"k8soperators/pkg/server/utils"
 	"net/http"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -26,26 +27,46 @@ var mnLog = logf.Log.WithName(managedNamespaceController.Name)
 
 func RequestNamespace(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		mnLog.Info("Received non-POST: %s", r.Method)
 		http.Error(w, "Only accepting POST requests", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var body RequestNamespaceBody
-	err := json.NewDecoder(r.Body).Decode(&body)
+	err := utils.GetJson(w, r, &body)
 	if err != nil {
-		mnLog.Info(fmt.Sprintf("Invalid body: %s", err.Error()))
-		http.Error(w, "Invalid body", http.StatusBadRequest)
+		mnLog.Info(err.Error())
 		return
 	}
-	mnLog.Info(fmt.Sprintf("%s requesting namespace", body.User))
 
 	namespace := &v1.Namespace{}
 	namespace.SetName(body.User)
 	namespace.SetLabels(map[string]string{constants.K8sOperatorsLabelKey: constants.ManagedNamespaceLabelValue})
 
+	roleBinding := &v12.RoleBinding{}
+	roleBinding.SetName("ephemeral-namespace-binding")
+	roleBinding.SetNamespace(namespace.Name)
+	roleBinding.RoleRef = v12.RoleRef{
+		APIGroup: "rbac.authorization.k8s.io",
+		Kind:     "ClusterRole",
+		Name:     "admin",
+	}
+	roleBinding.Subjects = []v12.Subject{
+		{
+			Kind:      "Group",
+			APIGroup:  "rbac.authorization.k8s.io",
+			Name:      "system:serviceaccounts",
+			Namespace: namespace.Name,
+		},
+		{
+			Kind:      "User",
+			APIGroup:  "rbac.authorization.k8s.io",
+			Name:      body.User,
+			Namespace: namespace.Name,
+		},
+	}
+
 	managedNamespace := &k8soperatorsv1alpha1.ManagedNamespace{}
-	managedNamespace.SetName("manager")
+	managedNamespace.SetName("anchor")
 	managedNamespace.SetNamespace(namespace.Name)
 	managedNamespace.Spec.Owner = body.User
 
@@ -55,7 +76,14 @@ func RequestNamespace(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to create Namespace: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
-	mnLog.Info(fmt.Sprintf("Created Namespace %s for user %s", namespace.Name, body.User))
+
+	err = k8sClient.Create(context.TODO(), roleBinding)
+	if err != nil {
+		k8sClient.Delete(context.TODO(), namespace)
+		mnLog.Info(fmt.Sprintf("Failed to create RoleBinding in namespace %s for user %s", namespace.Name, body.User))
+		http.Error(w, fmt.Sprintf("Failed to create RoleBinding: %s", err.Error()), http.StatusInternalServerError)
+		return
+	}
 
 	err = k8sClient.Create(context.TODO(), managedNamespace)
 	if err != nil {
