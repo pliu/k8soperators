@@ -130,7 +130,7 @@ func main() {
 	addMetrics(ctx, cfg)
 
 	// Start K8sOperators server
-	go server2.StartServer(mgr, "127.0.0.1:8080")
+	server2.StartServer(mgr, "0.0.0.0:8080")
 
 	log.Info("Starting the Cmd.")
 

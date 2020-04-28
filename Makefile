@@ -15,11 +15,8 @@ kind_destroy:
 
 .PHONY: generate_code
 generate_code:
-	operator-sdk generate k8s
-
-.PHONY: generate_crds
-generate_crds:
 	operator-sdk generate crds
+	operator-sdk generate k8s
 
 .PHONY: template_deployment
 template_deployment:
@@ -30,13 +27,13 @@ build: generate_code
 	operator-sdk build $(APP_IMAGE)
 
 .PHONY: apply
-apply: build template_deployment generate_crds
+apply: build template_deployment
 	kind load docker-image $(APP_IMAGE) --name $(CLUSTER_NAME)
 	-kubectl delete -f deploy/deployment.yaml
 	kubectl apply --recursive -f deploy/
 
 .PHONY: integration_tests
-integration_tests: build template_deployment generate_crds
+integration_tests: build template_deployment
 	-make kind_create
 	kind load docker-image $(APP_IMAGE) --name $(CLUSTER_NAME)
 	-kubectl create namespace $(TESTING_NAMESPACE)
