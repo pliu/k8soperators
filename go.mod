@@ -3,6 +3,7 @@ module k8soperators
 go 1.13
 
 require (
+	github.com/go-logr/logr v0.1.0
 	github.com/golang/gddo v0.0.0-20200324184333-3c2cc9a6329d
 	github.com/gorilla/handlers v1.4.2
 	github.com/operator-framework/operator-sdk v0.16.0
