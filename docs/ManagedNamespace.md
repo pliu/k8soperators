@@ -17,3 +17,18 @@ As only the user who requested the ephemeral namespace (and cluster admins)
 have the permissions required to delete the ManagedNamespace object within
 the ephemeral namespace, this provides a mechanism for the user to request
 deletion of their own ephemeral namespaces when they are done with them.
+
+## User guide
+The ManagedNamespace server controller uses the `/managednamespace` route
+prefix. The ManagedNamespace server controller currently only has one
+endpoint, `/create`, for creating managed namespaces. This endpoint
+processes POST requests with a JSON payload containing a single `user`
+field.
+```
+curl -H "Content-Type: application/json" localhost:8080/managednamespace/create -d '{"user":"<username>"}'
+```
+To delete the managed namespace, simply delete the ManagedNamespace object
+in the namespace.
+```
+kubectl delete managednamespace --all -n <namespace>
+```

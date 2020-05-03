@@ -73,7 +73,21 @@ Similar to controllers, custom resources must be registered with the
 manager.
 
 #### Server
+Although not part of the Operator SDK, K8sOperators comes with a server to
+allow for external interactions with the controllers in the project (e.g.
+the ManagedNamespace operator controller manages deletion of managed
+namespaces while the ManagedNamespace server controller manages user-
+requested managed namespace creation, together providing the complete
+ManagedNamespace functionality). Just as it is necessary to write a
+separate operator controller for each operator functionality, a separate
+server controller is recommended for each server functionality.
 
+The single server running on port 8080 is shared amongst the controllers
+using different path prefixes. To enable access to the server when it is
+deployed in Kubernetes, when creating the cluster, we port-forward
+localhost port 8080 on the local machine to port 30000 on one of the Docker
+worker "hosts". A NodePort service then forwards all host traffic on port
+30000 to the server on port 8080.
 
 ## Controllers in this project
 [ManagedNamespace](docs/ManagedNamespace.md)
