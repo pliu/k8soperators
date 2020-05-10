@@ -27,6 +27,9 @@ field.
 ```
 curl -H "Content-Type: application/json" localhost:8080/managednamespace/create -d '{"user":"<username>"}'
 ```
+If the operator is running in the cluster instead of locally, use port
+8181\.
+
 To delete the managed namespace, simply delete the ManagedNamespace object
 in the namespace.
 ```

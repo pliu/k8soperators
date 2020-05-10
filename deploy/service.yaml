@@ -8,6 +8,10 @@ spec:
       nodePort: 30000
       port: 8080
       protocol: TCP
+    - name: metrics
+      nodePort: 30001
+      port: 8383
+      protocol: TCP
   selector:
     name: k8soperators
   type: NodePort

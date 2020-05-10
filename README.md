@@ -42,6 +42,23 @@ scaffolding for common controller activities (e.g., providing the
 Kubernetes client, exposing metrics through an endpoint that can be scraped
 by Prometheus).
 
+K8sOperators makes use of the metrics server that comes with the manager,
+registering controller-specific metrics with the registry the metrics
+server serves.
+
+To enable access to the server when it is deployed in Kubernetes, when
+creating the cluster, we port-forward localhost port 8484 on the local
+machine to port 30001 on one of the Docker worker "hosts". A NodePort
+service then forwards all host traffic on port 30001 to the server on port
+8383\. Thus to access the metrics server:
+```
+Operator is running locally:
+curl localhost:8383/metrics
+
+Operator is running in the cluster:
+curl localhost:8484/metrics
+```
+
 #### Controllers
 Controllers comprise the core logic of any operator. They work by
 subscribing to events (e.g., creation, update, or deletion of specific
@@ -85,7 +102,7 @@ server controller is recommended for each server functionality.
 The single server running on port 8080 is shared amongst the controllers
 using different path prefixes. To enable access to the server when it is
 deployed in Kubernetes, when creating the cluster, we port-forward
-localhost port 8080 on the local machine to port 30000 on one of the Docker
+localhost port 8181 on the local machine to port 30000 on one of the Docker
 worker "hosts". A NodePort service then forwards all host traffic on port
 30000 to the server on port 8080.
 

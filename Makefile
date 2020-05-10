@@ -1,5 +1,5 @@
 CLUSTER_NAME=k8soperators
-KIND_IMAGE=kindest/node:v1.16.4@sha256:b91a2c2317a000f3a783489dfb755064177dbc3a0b2f4147d50f04825d016f55
+KIND_IMAGE=kindest/node:v1.18.2
 APP_NAME=k8soperators
 VERSION=$$(grep -o '".*"' version/version.go | sed 's/"//g')
 APP_IMAGE=$(APP_NAME):$(VERSION)

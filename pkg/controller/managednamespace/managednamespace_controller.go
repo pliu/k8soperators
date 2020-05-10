@@ -7,6 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
 	"k8soperators/pkg/constants"
+	"k8soperators/pkg/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
@@ -23,8 +24,9 @@ import (
 
 type void struct{}
 var (
-	log = logf.Log.WithName("controller_managednamespace")
 	voidValue void
+	log                      = logf.Log.WithName("controller_managednamespace")
+	deletedNamespacesCounter = metrics.GetDeletedNamespacesCounter()
 )
 
 // Add creates a new ManagedNamespace Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -49,7 +51,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Create a source for watching ManagedNamespace events
+	// Watch for ManagedNamespace deletion events
 	src := &source.Kind{Type: &k8soperatorsv1alpha1.ManagedNamespace{}}
 	h := &handler.EnqueueRequestForObject{}
 	pred := predicate.Funcs{
@@ -91,9 +93,6 @@ type ReconcileManagedNamespace struct {
 
 // Reconcile reads that state of the cluster for a ManagedNamespace object and makes changes based on the state read
 // and what is in the ManagedNamespace.Spec
-// Note:
-// The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling ManagedNamespace")
@@ -132,6 +131,7 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 			hasFailures = true
 		}
 		reqLogger.Info(fmt.Sprintf("Deleted namespace %s", namespace.Name))
+		deletedNamespacesCounter.Inc()
 	}
 
 	if hasFailures {

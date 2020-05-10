@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
+	"k8soperators/pkg/metrics"
 	server2 "k8soperators/pkg/server"
 	"os"
 	"runtime"
@@ -12,14 +12,11 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/client-go/rest"
-
 	"k8soperators/pkg/apis"
 	"k8soperators/pkg/controller"
 	"k8soperators/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
@@ -68,6 +65,8 @@ func main() {
 	logf.SetLogger(zap.Logger())
 
 	printVersion()
+
+	metrics.RegisterCollectors()
 
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
@@ -126,9 +125,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Add the Metrics Service
-	addMetrics(ctx, cfg)
-
 	// Start K8sOperators server
 	server2.StartServer(mgr, "0.0.0.0:8080")
 
@@ -139,47 +135,4 @@ func main() {
 		log.Error(err, "Manager exited non-zero")
 		os.Exit(1)
 	}
-}
-
-// addMetrics will create the Services and Service Monitors to allow the operator export the metrics by using
-// the Prometheus operator
-func addMetrics(ctx context.Context, cfg *rest.Config) {
-	// Get the namespace the operator is currently deployed in.
-	operatorNs, err := k8sutil.GetOperatorNamespace()
-	if err != nil {
-		if errors.Is(err, k8sutil.ErrRunLocal) {
-			log.Info("Skipping CR metrics server creation; not running in a cluster.")
-			return
-		}
-	}
-
-	if err := serveCRMetrics(cfg, operatorNs); err != nil {
-		log.Info("Could not generate and serve custom resource metrics", "error", err.Error())
-	}
-}
-
-// serveCRMetrics gets the Operator/CustomResource GVKs and generates metrics based on those types.
-// It serves those metrics on "http://metricsHost:operatorMetricsPort".
-func serveCRMetrics(cfg *rest.Config, operatorNs string) error {
-	// The function below returns a list of filtered operator/CR specific GVKs. For more control, override the GVK list below
-	// with your own custom logic. Note that if you are adding third party API schemas, probably you will need to
-	// customize this implementation to avoid permissions issues.
-	filteredGVK, err := k8sutil.GetGVKsFromAddToScheme(apis.AddToScheme)
-	if err != nil {
-		return err
-	}
-
-	// The metrics will be generated from the namespaces which are returned here.
-	// NOTE that passing nil or an empty list of namespaces in GenerateAndServeCRMetrics will result in an error.
-	ns, err := kubemetrics.GetNamespacesForMetrics(operatorNs)
-	if err != nil {
-		return err
-	}
-
-	// Generate and serve custom resource specific metrics.
-	err = kubemetrics.GenerateAndServeCRMetrics(cfg, ns, filteredGVK, metricsHost, operatorMetricsPort)
-	if err != nil {
-		return err
-	}
-	return nil
 }
