@@ -4,26 +4,6 @@ metadata:
   name: k8soperators
 rules:
   - apiGroups:
-      - k8soperators.pliu.github.com
-    resources:
-      - '*'
-    verbs:
-      - '*'
-  - apiGroups:
-      - '*'
-    resources:
-      - namespaces
-    verbs:
-      - '*'
-  - apiGroups:
-      - '*'
-    resources:
-      - configmaps
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
       - '*'
     resources:
       - '*'

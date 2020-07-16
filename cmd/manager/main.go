@@ -83,8 +83,7 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "k8soperators-lock")
-	if err != nil {
+	if err := leader.Become(ctx, "k8soperators-lock"); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}

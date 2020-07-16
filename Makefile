@@ -3,7 +3,6 @@ KIND_IMAGE=kindest/node:v1.18.2
 APP_NAME=k8soperators
 VERSION=$$(grep -o '".*"' version/version.go | sed 's/"//g')
 APP_IMAGE=$(APP_NAME):$(VERSION)
-TESTING_NAMESPACE=integration-test
 
 .PHONY: kind_create
 kind_create:
@@ -32,19 +31,19 @@ apply: build template_deployment
 	-kubectl delete -f deploy/deployment.yaml
 	kubectl apply --recursive -f deploy/
 
+.PHONY: delete
+delete:
+	kubectl delete --recursive -f deploy/
+
 .PHONY: integration_tests
-integration_tests: build template_deployment
-	-make kind_create
-	kind load docker-image $(APP_IMAGE) --name $(CLUSTER_NAME)
-	-kubectl create namespace $(TESTING_NAMESPACE)
-	@kubectl apply --recursive -f deploy/ -n $(TESTING_NAMESPACE)
-	go test ./integration-tests/...
-	kubectl delete --recursive -f deploy/ -n $(TESTING_NAMESPACE)
-	kubectl delete namespace $(TESTING_NAMESPACE)
+integration_tests:
+	-make apply
+	sleep 20
+	go test -count=1 ./integration-tests/...
 
 .PHONY: unit_tests
 unit_tests: generate_code
-	go test ./pkg/...
+	go test -count=1 ./pkg/...
 
 .PHONY: run
 run: generate_code

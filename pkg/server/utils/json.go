@@ -40,9 +40,8 @@ func GetJson(w http.ResponseWriter, r *http.Request, o interface{}) error {
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 
-	err := dec.Decode(&o)
 	var msg string
-	if err != nil {
+	if err := dec.Decode(&o); err != nil {
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
 

@@ -146,6 +146,9 @@ make integration_tests
 Apply operator to the cluster:
 make apply
 
+Delete operator from the cluster:
+make delete
+
 Build Go binary and package into Docker image:
 make build
 ```

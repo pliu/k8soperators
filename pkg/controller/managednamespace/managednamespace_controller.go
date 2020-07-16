@@ -3,7 +3,7 @@ package managednamespace
 import (
 	"context"
 	"fmt"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
 	"k8soperators/pkg/constants"
@@ -72,8 +72,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 			return true
 		},
 	}
-	err = c.Watch(src, h, pred)
-	if err != nil {
+	if err := c.Watch(src, h, pred); err != nil {
 		return err
 	}
 
@@ -98,8 +97,7 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 	reqLogger.Info("Reconciling ManagedNamespace")
 
 	managedNamespaces := &k8soperatorsv1alpha1.ManagedNamespaceList{}
-	err := r.client.List(context.TODO(), managedNamespaces)
-	if err != nil {
+	if err := r.client.List(context.TODO(), managedNamespaces); err != nil {
 		reqLogger.Error(err, "Failed to get ManagedNamepsaces - requeuing")
 		return reconcile.Result{}, err
 	}
@@ -108,13 +106,12 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 		managedNamespaceNames[managedNamespace.Namespace] = voidValue
 	}
 
-	namespaces := &v1.NamespaceList{}
+	namespaces := &corev1.NamespaceList{}
 	labelSelector := labels.SelectorFromSet(map[string]string{
 		constants.K8sOperatorsLabelKey: constants.ManagedNamespaceLabelValue,
 	})
 	listOps := &client.ListOptions{LabelSelector: labelSelector}
-	err = r.client.List(context.TODO(), namespaces, listOps)
-	if err != nil {
+	if err := r.client.List(context.TODO(), namespaces, listOps); err != nil {
 		reqLogger.Error(err, "Failed to get Namepsaces - requeuing")
 		return reconcile.Result{}, err
 	}
@@ -125,8 +122,7 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 			reqLogger.Info(fmt.Sprintf("Namespace %s is still being managed", namespace.Name))
 			continue
 		}
-		err = r.client.Delete(context.TODO(), &namespace)
-		if err != nil {
+		if err := r.client.Delete(context.TODO(), &namespace); err != nil {
 			reqLogger.Error(err, fmt.Sprintf("Failed to delete %s - requeuing", namespace.Name))
 			hasFailures = true
 		}
