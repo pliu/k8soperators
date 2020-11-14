@@ -15,8 +15,8 @@ type Controller struct {
 }
 
 var (
-	Controllers             = make(map[string]*Controller)
-	k8sClient client.Client = nil
+	Controllers               = make(map[string]*Controller)
+	k8sClient   client.Client = nil
 )
 
 func registerController(controller *Controller) {

@@ -5,26 +5,27 @@ import (
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
 	"k8soperators/pkg/constants"
+	"k8soperators/pkg/background"
 	"k8soperators/pkg/metrics"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"time"
-
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"time"
 )
 
 type void struct{}
+
 var (
-	voidValue void
+	voidValue                void
 	log                      = logf.Log.WithName("controller_managednamespace")
 	deletedNamespacesCounter = metrics.GetDeletedNamespacesCounter()
 )
@@ -44,7 +45,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("managednamespace-controller", mgr, controller.Options{
-		Reconciler: r,
+		Reconciler:              r,
 		MaxConcurrentReconciles: 1,
 	})
 	if err != nil {
@@ -93,13 +94,25 @@ type ReconcileManagedNamespace struct {
 // Reconcile reads that state of the cluster for a ManagedNamespace object and makes changes based on the state read
 // and what is in the ManagedNamespace.Spec
 func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ManagedNamespace")
+	log.Info(fmt.Sprintf("Reconcile triggered by %s in namespace %s", request.Name, request.Namespace))
+
+	retry := ReconcileManagedNamespaces(r.client)
+
+	time.Sleep(time.Second * 15)
+	if retry {
+		log.Info("Requeuing")
+		return reconcile.Result{Requeue: true}, nil
+	}
+	return reconcile.Result{}, nil
+}
+
+func ReconcileManagedNamespaces(c client.Client) bool {
+	log.Info("Reconciling ManagedNamespace")
 
 	managedNamespaces := &k8soperatorsv1alpha1.ManagedNamespaceList{}
-	if err := r.client.List(context.TODO(), managedNamespaces); err != nil {
-		reqLogger.Error(err, "Failed to get ManagedNamepsaces - requeuing")
-		return reconcile.Result{}, err
+	if err := c.List(context.TODO(), managedNamespaces); err != nil {
+		log.Error(err, "Failed to get ManagedNamepsaces")
+		return true
 	}
 	managedNamespaceNames := make(map[string]void)
 	for _, managedNamespace := range managedNamespaces.Items {
@@ -111,29 +124,28 @@ func (r *ReconcileManagedNamespace) Reconcile(request reconcile.Request) (reconc
 		constants.K8sOperatorsLabelKey: constants.ManagedNamespaceLabelValue,
 	})
 	listOps := &client.ListOptions{LabelSelector: labelSelector}
-	if err := r.client.List(context.TODO(), namespaces, listOps); err != nil {
-		reqLogger.Error(err, "Failed to get Namepsaces - requeuing")
-		return reconcile.Result{}, err
+	if err := c.List(context.TODO(), namespaces, listOps); err != nil {
+		log.Error(err, "Failed to get Namepsaces")
+		return true
 	}
 
 	hasFailures := false
 	for _, namespace := range namespaces.Items {
 		if _, exists := managedNamespaceNames[namespace.Name]; exists {
-			reqLogger.Info(fmt.Sprintf("Namespace %s is still being managed", namespace.Name))
+			log.Info(fmt.Sprintf("Namespace %s is still being managed", namespace.Name))
 			continue
 		}
-		if err := r.client.Delete(context.TODO(), &namespace); err != nil {
-			reqLogger.Error(err, fmt.Sprintf("Failed to delete %s - requeuing", namespace.Name))
+		if err := c.Delete(context.TODO(), &namespace); err != nil {
+			log.Error(err, fmt.Sprintf("Failed to delete %s", namespace.Name))
 			hasFailures = true
 		}
-		reqLogger.Info(fmt.Sprintf("Deleted namespace %s", namespace.Name))
+		log.Info(fmt.Sprintf("Deleted namespace %s", namespace.Name))
 		deletedNamespacesCounter.Inc()
 	}
 
-	if hasFailures {
-		return reconcile.Result{Requeue: true}, nil
-	}
+	return hasFailures
+}
 
-	time.Sleep(time.Second * 15)
-	return reconcile.Result{}, nil
+func init() {
+	background.AddGlobalReconciler(ReconcileManagedNamespaces)
 }

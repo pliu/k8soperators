@@ -16,11 +16,11 @@ import (
 )
 
 const (
-	createURL  = "http://localhost:8181/managednamespace/create"
-	metricsURL = "http://localhost:8484/metrics"
+	createURL                  = "http://localhost:8181/managednamespace/create"
+	metricsURL                 = "http://localhost:8484/metrics"
 	createdNamespacesMetricKey = "managednamespace_created_namespaces"
 	deletedNamespacesMetricKey = "managednamespace_deleted_namespaces"
-	username = "test"
+	username                   = "test"
 )
 
 func TestCreateDeleteManagedNamespace(t *testing.T) {

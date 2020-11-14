@@ -21,7 +21,7 @@ var (
 		Mux:  http.NewServeMux(),
 	}
 
-	createdNameSpacesCounter = 	metrics.GetCreatedNamespacesCounter()
+	createdNameSpacesCounter        = metrics.GetCreatedNamespacesCounter()
 	failedCreateNamespaceCounterVec = metrics.GetFailedCreateNamespaceCounterVec()
 )
 

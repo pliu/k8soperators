@@ -59,6 +59,22 @@ Operator is running in the cluster:
 curl localhost:8484/metrics
 ```
 
+The manager has a SyncPeriod setting that sets the interval at which all
+watched objects in the cache are automatically reconciled. Using a data
+processing analogy, the state is normally updated in a streaming manner -
+with each received event. Over time, however, since events can be lost, the
+materialized state can diverge from the true state. To resolve this, one
+can run batch jobs at some specified interval to reconcile the true,
+point-in-time state, after which subsequent events mutate the newly
+converged state in a streaming manner again. The SyncPeriod is essentially
+the interval at which the batch job would be run.
+
+We have essentially disabled this functionality, however, by setting the
+period to 10 years. The reason is that, for each controller, the controller
+either triggers a global reconciliation on each event or has a background
+process that performs global reconciliation. Thus, this functionality is
+not required to maintain state convergence.
+
 #### Controllers
 Controllers comprise the core logic of any operator. They work by
 subscribing to events (e.g., creation, update, or deletion of specific
@@ -105,6 +121,13 @@ deployed in Kubernetes, when creating the cluster, we port-forward
 localhost port 8181 on the local machine to port 30000 on one of the Docker
 worker "hosts". A NodePort service then forwards all host traffic on port
 30000 to the server on port 8080.
+
+#### Background
+Also not a part of the Operator SDK, K8sOperators comes with a framework for
+running global reconciliations in the background, including initial global
+reconciliations at operator start. The purpose of this is to reconcile any
+changes that controllers missed in between global reconciliations, including
+any that occurred while the operator was unavailable.
 
 ## Controllers in this project
 [ManagedNamespace](docs/ManagedNamespace.md)

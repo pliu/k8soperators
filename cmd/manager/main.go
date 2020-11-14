@@ -4,11 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"k8soperators/pkg/background"
 	"k8soperators/pkg/metrics"
 	server2 "k8soperators/pkg/server"
+	"k8soperators/pkg/utils"
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -30,11 +33,10 @@ import (
 
 // Change below variables to serve metrics on different host or port.
 var (
-	metricsHost               = "0.0.0.0"
-	metricsPort         int32 = 8383
-	operatorMetricsPort int32 = 8686
+	metricsHost       = "0.0.0.0"
+	metricsPort int32 = 8383
+	log               = logf.Log.WithName("cmd")
 )
-var log = logf.Log.WithName("cmd")
 
 func printVersion() {
 	log.Info(fmt.Sprintf("Operator Version: %s", version.Version))
@@ -89,9 +91,11 @@ func main() {
 	}
 
 	// Set default manager options
+	syncPeriod := time.Hour * 87600 // 10 years
 	options := manager.Options{
 		Namespace:          namespace,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
+		SyncPeriod:         &syncPeriod,
 	}
 
 	// Add support for MultiNamespace set in WATCH_NAMESPACE (e.g ns1,ns2)
@@ -122,6 +126,13 @@ func main() {
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
+	}
+
+	// Run initial round of global reconciliations
+	if c, err := utils.GetK8sClient(""); err == nil {
+		background.InitialReconciliation(c)
+	} else {
+		log.Error(err, "Failed to get client for initial reconciliations")
 	}
 
 	// Start K8sOperators server

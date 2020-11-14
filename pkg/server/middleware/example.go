@@ -28,9 +28,9 @@ func (h exampleHandler2) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func exampleMiddleware1(handler http.Handler) http.Handler {
-	return exampleHandler1{nextHandler:handler}
+	return exampleHandler1{nextHandler: handler}
 }
 
 func exampleMiddleware2(handler http.Handler) http.Handler {
-	return exampleHandler2{nextHandler:handler}
+	return exampleHandler2{nextHandler: handler}
 }
