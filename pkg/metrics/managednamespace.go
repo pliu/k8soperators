@@ -7,7 +7,7 @@ import (
 var (
 	createdNamespacesCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "managednamespace_created_namespaces",
-		Help: "Number of namespaces creates",
+		Help: "Number of namespaces created",
 	})
 
 	failedCreateNamespaceCounterVec = prometheus.NewCounterVec(prometheus.CounterOpts{

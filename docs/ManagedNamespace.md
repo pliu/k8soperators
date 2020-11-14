@@ -2,7 +2,7 @@
 As its name might suggest, ManagedNamespace is an operator for managing
 namespaces. Specifically, it is designed to allow users to self-serve and
 create and delete ephemeral namespaces while maintaining security across the
-cluster's other namespaces (e.g. the ones in which applications are
+cluster's other namespaces (e.g., the ones in which applications are
 running).
 
 It does this by exposing a REST API that allows users to request an

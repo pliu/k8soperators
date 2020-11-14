@@ -6,7 +6,7 @@ integration testing.
 
 This project assumes basic familiarity with Kubernetes. If you are new to
 Kubernetes, it would be helpful to read about the high-level model of how
-Kubernetes works (e.g. how it models the actual state of a cluster, both
+Kubernetes works (e.g., how it models the actual state of a cluster, both
 the hardware and the applications that are running within it, and how it
 constantly reconciles its observed state with some desired state). There
 is also a sister project to help familiarize oneself with Kubernetes:
@@ -21,7 +21,7 @@ the functionality of a given controller is deemed worth deploying as its
 own operator, it would be fairly simple to break that functionality out.
 
 One downside of using a single operator is that all controllers within it
-will share the same scope (i.e. cluster or namespace) - K8sOperators is
+will share the same scope (i.e., cluster or namespace) - K8sOperators is
 cluster-scoped. As being cluster-scoped requires handling a superset of the
 cases handled by namespace-scoped controllers, splitting a controller from
 K8sOperators out into its own operator that is namespace-scoped should be
@@ -130,7 +130,8 @@ changes that controllers missed in between global reconciliations, including
 any that occurred while the operator was unavailable.
 
 ## Controllers in this project
-[ManagedNamespace](docs/ManagedNamespace.md)
+* [ManagedNamespace](docs/ManagedNamespace.md)
+* [ManagedKerberos](docs/ManagedKerberos.md)
 
 ## Testing
 There are numerous methods in K8sOperators to hasten the feedback loop of
@@ -143,7 +144,7 @@ the kubeconfig found at ~/.kube/config.
 When initially developing a controller, running the operator locally allows
 for rapid iteration (this runs the current code and displays the log
 messages). While running locally, any endpoints exposed by the operator
-(e.g. the metrics endpoint) are accessible on localhost. As the
+(e.g., the metrics endpoint) are accessible on localhost. As the
 functionality sets, it should be codified in unit and integration tests that
 can be run on subsequent code changes to ensure that the desired behavior
 was not altered. Finally, the operator can be applied to the cluster as it
@@ -174,4 +175,10 @@ make delete
 
 Build Go binary and package into Docker image:
 make build
+
+Create new resource:
+operator-sdk add api --api-version k8soperators/<version> --kind <resource name>
+
+Create new controller that watches a resource (this can be modified later in code):
+operator-sdk add controller --api-version k8soperators/<version> --kind <resource to watch>
 ```
