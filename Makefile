@@ -5,7 +5,7 @@ VERSION=$$(grep -o '".*"' version/version.go | sed 's/"//g')
 APP_IMAGE=$(APP_NAME):$(VERSION)
 
 .PHONY: kind_create
-kind_create:
+kind_create: kind_destroy
 	kind create cluster --config=kind/config.yaml --name $(CLUSTER_NAME) --image $(KIND_IMAGE)
 
 .PHONY: kind_destroy

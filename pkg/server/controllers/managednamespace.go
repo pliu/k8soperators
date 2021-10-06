@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"io"
-	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
 	"k8soperators/pkg/constants"
 	"k8soperators/pkg/metrics"
 	"k8soperators/pkg/server/utils"
 	"net/http"
+
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -31,7 +32,7 @@ type RequestNamespaceBody struct {
 
 var mnLog = logf.Log.WithName(managedNamespaceController.Name)
 
-func RequestNamespace(w http.ResponseWriter, r *http.Request) {
+func requestNamespace(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		failedCreateNamespaceCounterVec.WithLabelValues("non-post").Inc()
 		http.Error(w, "Only accepting POST requests", http.StatusMethodNotAllowed)
@@ -106,7 +107,7 @@ func RequestNamespace(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
-	managedNamespaceController.Mux.HandleFunc("/create", RequestNamespace)
+	managedNamespaceController.Mux.HandleFunc("/create", requestNamespace)
 
 	registerController(&managedNamespaceController)
 }

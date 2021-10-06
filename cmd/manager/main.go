@@ -133,6 +133,7 @@ func main() {
 		background.InitialReconciliation(c)
 	} else {
 		log.Error(err, "Failed to get client for initial reconciliations")
+		os.Exit(1)
 	}
 
 	// Start K8sOperators server

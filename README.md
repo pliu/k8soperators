@@ -29,7 +29,7 @@ simple.
 
 ## Components used in setting up this project
 ```
-go 1.13.5
+go 1.13.5, 1.17.1
 operator-sdk 0.16.0
 kind 0.7.0 (0.7.0+ is required for disk access)
 kubectl 1.17.3
@@ -131,6 +131,7 @@ any that occurred while the operator was unavailable.
 
 ## Controllers in this project
 [ManagedNamespace](docs/ManagedNamespace.md)
+[Third Party API](docs/ThirdPartyAPI.md)
 
 ## Testing
 There are numerous methods in K8sOperators to hasten the feedback loop of

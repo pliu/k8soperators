@@ -17,3 +17,9 @@ rules:
       - configmaps
     verbs:
       - '*'
+  - apiGroups:
+      - 'bitnami.com'
+    resources:
+      - '*'
+    verbs:
+      - '*'
