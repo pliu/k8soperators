@@ -31,7 +31,7 @@ simple.
 ```
 go 1.13.5, 1.17.1
 operator-sdk 0.16.0
-kind 0.7.0 (0.7.0+ is required for disk access)
+kind 0.11.1
 kubectl 1.17.3
 ```
 
