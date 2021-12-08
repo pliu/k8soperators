@@ -24,14 +24,17 @@ prefix. The ManagedNamespace server controller currently only has one
 endpoint, `/create`, for creating managed namespaces. This endpoint
 processes POST requests with a JSON payload containing a single `user`
 field.
+
 ```
 curl -H "Content-Type: application/json" localhost:8080/managednamespace/create -d '{"user":"<username>"}'
 ```
+
 If the operator is running in the cluster instead of locally, use port
 8181\.
 
 To delete the managed namespace, simply delete the ManagedNamespace object
 in the namespace.
+
 ```
 kubectl delete managednamespace --all -n <namespace>
 ```

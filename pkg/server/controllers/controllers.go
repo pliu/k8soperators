@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -18,6 +19,7 @@ type Controller struct {
 var (
 	Controllers               = make(map[string]*Controller)
 	k8sClient   client.Client = nil
+	k8sConfig   *rest.Config  = nil
 )
 
 func registerController(controller *Controller) {
@@ -31,4 +33,8 @@ func registerController(controller *Controller) {
 
 func RegisterClient(client client.Client) {
 	k8sClient = client
+}
+
+func RegisterConfig(config *rest.Config) {
+	k8sConfig = config
 }

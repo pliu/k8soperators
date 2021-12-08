@@ -17,6 +17,7 @@ var (
 
 func StartServer(mgr manager.Manager, address string) {
 	controllers.RegisterClient(mgr.GetClient())
+	controllers.RegisterConfig(mgr.GetConfig())
 	routes := registerControllers()
 	rootMux.Handle("/", middleware.GetRootMiddleware(routes))
 

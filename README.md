@@ -51,6 +51,7 @@ creating the cluster, we port-forward localhost port 8484 on the local
 machine to port 30001 on one of the Docker worker "hosts". A NodePort
 service then forwards all host traffic on port 30001 to the server on port
 8383\. Thus to access the metrics server:
+
 ```
 Operator is running locally:
 curl localhost:8383/metrics

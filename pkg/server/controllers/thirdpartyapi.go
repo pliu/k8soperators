@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	sealedsecretsv1alpha1 "github.com/bitnami-labs/sealed-secrets/pkg/apis/sealed-secrets/v1alpha1"
+	sealedsecretsclientset "github.com/bitnami-labs/sealed-secrets/pkg/client/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -25,6 +26,7 @@ var (
 	tpaLabels = labels.Set(map[string]string{
 		constants.K8sOperatorsLabelKey: constants.ThirdPartyAPILabelValue,
 	})
+	sealedSecretsClientset *sealedsecretsclientset.Clientset = nil
 )
 
 type ThirdPartyAPIBody struct {
@@ -77,8 +79,12 @@ func getSealedSecret(w http.ResponseWriter, r *http.Request) {
 
 	name := strings.TrimPrefix(r.URL.Path, "/get/")
 
-	sealedsecret := &sealedsecretsv1alpha1.SealedSecret{}
-	if err := k8sClient.Get(context.TODO(), client.ObjectKey{Name: name, Namespace: constants.OperatorNamespace}, sealedsecret); err != nil {
+	if sealedSecretsClientset == nil {
+		sealedSecretsClientset = sealedsecretsclientset.NewForConfigOrDie(k8sConfig)
+		tpaLog.Info("Created SealedSecretsClientset")
+	}
+	sealedsecret, err := sealedSecretsClientset.BitnamiV1alpha1().SealedSecrets(constants.OperatorNamespace).Get(name, metav1.GetOptions{})
+	if err != nil {
 		tpaLog.Info(fmt.Sprintf("Failed to get SealedSecret %s", name))
 		http.Error(w, fmt.Sprintf("Failed to get SealedSecret: %s", err.Error()), http.StatusInternalServerError)
 		return

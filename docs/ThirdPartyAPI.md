@@ -12,10 +12,12 @@ The ThirdPartyAPI server controller uses the `/tpa` route prefix. The
 ThirdPartyAPI server controller has three endpoints, `/create`, `/get`, and
 `/delete` for creating, getting, and deleting SealedSecrets. These endpoints
 process POST requests with a JSON payload containing a single `name` field.
+
 ```
 curl -H "Content-Type: application/json" localhost:8080/tpa/create -d '{"name":"<resource name>"}'
 curl localhost:8080/tpa/get/<resource name>
-curl -X DELETE localhost:8080/tpa/delete'
+curl -X DELETE localhost:8080/tpa/delete
 ```
+
 If the operator is running in the cluster instead of locally, use port
 8181\.
