@@ -7,6 +7,7 @@ import (
 	k8soperatorsv1alpha1 "k8soperators/pkg/apis/k8soperators/v1alpha1"
 	"k8soperators/pkg/constants"
 	"k8soperators/pkg/metrics"
+	"k8soperators/pkg/server/middleware"
 	"k8soperators/pkg/server/utils"
 	"net/http"
 
@@ -20,6 +21,10 @@ var (
 		Name: "ManagedNamespaceController",
 		Path: "/managednamespace",
 		Mux:  http.NewServeMux(),
+		Middlewares: []*middleware.Middleware{
+			middleware.GetExampleMiddleware1(),
+			middleware.GetExampleMiddleware2(),
+		},
 	}
 
 	createdNameSpacesCounter        = metrics.GetCreatedNamespacesCounter()

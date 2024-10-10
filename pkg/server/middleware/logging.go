@@ -62,6 +62,11 @@ func writeLog(writer io.Writer, params handlers.LogFormatterParams) {
 	writer.Write(buf)
 }
 
-func loggingMiddleware(h http.Handler) http.Handler {
-	return handlers.CustomLoggingHandler(logWriter, h, writeLog)
+func GetLoggingMiddleware() *Middleware {
+	return &Middleware{
+		Name: "logging",
+		Function: func(h http.Handler) http.Handler {
+			return handlers.CustomLoggingHandler(logWriter, h, writeLog)
+		},
+	}
 }

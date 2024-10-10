@@ -27,10 +27,20 @@ func (h exampleHandler2) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ehLog.Info("POST 2")
 }
 
-func exampleMiddleware1(handler http.Handler) http.Handler {
-	return exampleHandler1{nextHandler: handler}
+func GetExampleMiddleware1() *Middleware {
+	return &Middleware{
+		Name: "example1",
+		Function: func(h http.Handler) http.Handler{
+			return exampleHandler1{nextHandler: h}
+		},
+	}
 }
 
-func exampleMiddleware2(handler http.Handler) http.Handler {
-	return exampleHandler2{nextHandler: handler}
+func GetExampleMiddleware2() *Middleware {
+	return &Middleware{
+		Name: "example2",
+		Function: func(h http.Handler) http.Handler{
+			return exampleHandler2{nextHandler: h}
+		},
+	}
 }

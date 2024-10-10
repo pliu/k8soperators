@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"k8soperators/pkg/server/middleware"
 	"net/http"
 	"os"
 
@@ -11,9 +12,10 @@ import (
 )
 
 type Controller struct {
-	Name string
-	Path string
-	Mux  *http.ServeMux
+	Name        string
+	Path        string
+	Mux         *http.ServeMux
+	Middlewares []*middleware.Middleware
 }
 
 var (

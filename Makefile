@@ -48,4 +48,4 @@ unit_tests: generate_code
 .PHONY: run
 run: generate_code
 	-kubectl apply --recursive -f deploy/crds
-	OPERATOR_NAME=$(APP_NAME) operator-sdk run --local --namespace=''
+	OPERATOR_NAME=$(APP_NAME) WATCH_NAMESPACE="" go run cmd/manager/main.go
